@@ -67,8 +67,8 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    media: Media;
     users: User;
+    blog: Blog;
     contract: Contract;
     workflows: Workflow;
     workflowLogs: WorkflowLog;
@@ -79,8 +79,8 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
-    media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    blog: BlogSelect<false> | BlogSelect<true>;
     contract: ContractSelect<false> | ContractSelect<true>;
     workflows: WorkflowsSelect<false> | WorkflowsSelect<true>;
     workflowLogs: WorkflowLogsSelect<false> | WorkflowLogsSelect<true>;
@@ -125,30 +125,11 @@ export interface UserAuthOperations {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media".
- */
-export interface Media {
-  id: string;
-  alt: string;
-  updatedAt: string;
-  createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
   id: string;
-  role: 'admin' | 'reviewer' | 'manager' | 'legal';
+  role?: ('admin' | 'reviewer' | 'manager' | 'legal') | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -167,6 +148,20 @@ export interface User {
     | null;
   password?: string | null;
   collection: 'users';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "blog".
+ */
+export interface Blog {
+  id: string;
+  title: string;
+  content: string;
+  status?: ('draft' | 'review' | 'approved' | 'rejected') | null;
+  workflowStatus?: string | null;
+  currentStep?: number | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -190,6 +185,15 @@ export interface Workflow {
   id: string;
   name: string;
   targetCollection: string;
+  steps?:
+    | {
+        stepName: string;
+        stepType?: ('approval' | 'review' | 'signoff' | 'comment') | null;
+        assignedRole?: ('reviewer' | 'manager' | 'legal') | null;
+        order: number;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -200,9 +204,9 @@ export interface Workflow {
 export interface WorkflowLog {
   id: string;
   workflowId: string;
-  collection: string;
+  collectionSlug: string;
   documentId: string;
-  stepId?: string | null;
+  stepId?: number | null;
   user?: (string | null) | User;
   action: string;
   comment?: string | null;
@@ -235,12 +239,12 @@ export interface PayloadLockedDocument {
   id: string;
   document?:
     | ({
-        relationTo: 'media';
-        value: string | Media;
-      } | null)
-    | ({
         relationTo: 'users';
         value: string | User;
+      } | null)
+    | ({
+        relationTo: 'blog';
+        value: string | Blog;
       } | null)
     | ({
         relationTo: 'contract';
@@ -298,24 +302,6 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media_select".
- */
-export interface MediaSelect<T extends boolean = true> {
-  alt?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  url?: T;
-  thumbnailURL?: T;
-  filename?: T;
-  mimeType?: T;
-  filesize?: T;
-  width?: T;
-  height?: T;
-  focalX?: T;
-  focalY?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
@@ -339,6 +325,19 @@ export interface UsersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "blog_select".
+ */
+export interface BlogSelect<T extends boolean = true> {
+  title?: T;
+  content?: T;
+  status?: T;
+  workflowStatus?: T;
+  currentStep?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "contract_select".
  */
 export interface ContractSelect<T extends boolean = true> {
@@ -357,6 +356,15 @@ export interface ContractSelect<T extends boolean = true> {
 export interface WorkflowsSelect<T extends boolean = true> {
   name?: T;
   targetCollection?: T;
+  steps?:
+    | T
+    | {
+        stepName?: T;
+        stepType?: T;
+        assignedRole?: T;
+        order?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -366,7 +374,7 @@ export interface WorkflowsSelect<T extends boolean = true> {
  */
 export interface WorkflowLogsSelect<T extends boolean = true> {
   workflowId?: T;
-  collection?: T;
+  collectionSlug?: T;
   documentId?: T;
   stepId?: T;
   user?: T;

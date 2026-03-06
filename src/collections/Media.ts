@@ -14,3 +14,4 @@ export const Media: CollectionConfig = {
   ],
   upload: true,
 }
+export default Media

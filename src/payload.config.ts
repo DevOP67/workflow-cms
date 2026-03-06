@@ -1,32 +1,28 @@
-import { mongooseAdapter } from '@payloadcms/db-mongodb'
-import { lexicalEditor } from '@payloadcms/richtext-lexical'
-import path from 'path'
 import { buildConfig } from 'payload'
-import { fileURLToPath } from 'url'
-import sharp from 'sharp'
+import { mongooseAdapter } from '@payloadcms/db-mongodb'
 
-import { Users } from './collections/Users'
-import { Media } from './collections/Media'
+import Users from './collections/Users'
+import Blog from './collections/Blog'
+import Contract from './collections/Contract'
+import Workflows from './collections/Workflows'
+import WorkflowLogs from './collections/WorkflowLogs'
 
-const filename = fileURLToPath(import.meta.url)
-const dirname = path.dirname(filename)
+import { workflowActionEndpoint } from './api/workflows'
 
 export default buildConfig({
+  serverURL: 'http://localhost:3000',
+
   admin: {
     user: Users.slug,
-    importMap: {
-      baseDir: path.resolve(dirname),
-    },
   },
-  collections: [Users, Media],
-  editor: lexicalEditor(),
-  secret: process.env.PAYLOAD_SECRET || '',
-  typescript: {
-    outputFile: path.resolve(dirname, 'payload-types.ts'),
-  },
+
+  collections: [Users, Blog, Contract, Workflows, WorkflowLogs],
+
+  endpoints: [workflowActionEndpoint],
+
   db: mongooseAdapter({
-    url: process.env.DATABASE_URL || '',
+    url: process.env.DATABASE_URI || 'mongodb://127.0.0.1:27017/workflow-cms',
   }),
-  sharp,
-  plugins: [],
+
+  secret: process.env.PAYLOAD_SECRET || 'supersecret',
 })
