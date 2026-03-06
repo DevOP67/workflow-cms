@@ -1,7 +1,21 @@
 'use client'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
-const WorkflowPanel = ({ data }: any) => {
+const WorkflowPanel = ({ data, collectionSlug }: any) => {
+  const [status, setStatus] = useState<any>(null)
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      const res = await fetch(`/api/workflows/status/${collectionSlug}/${data?.id}`)
+
+      const result = await res.json()
+
+      setStatus(result)
+    }
+
+    if (data?.id) fetchStatus()
+  }, [data])
+
   const handleAction = async (action: string) => {
     await fetch('/api/workflows/action', {
       method: 'POST',
@@ -11,7 +25,7 @@ const WorkflowPanel = ({ data }: any) => {
       },
 
       body: JSON.stringify({
-        collection: 'blog',
+        collection: collectionSlug,
         documentId: data?.id,
         action: action,
       }),
@@ -20,30 +34,44 @@ const WorkflowPanel = ({ data }: any) => {
     window.location.reload()
   }
 
+  if (!status) return <div>Loading workflow...</div>
+
   return (
     <div
       style={{
-        padding: '16px',
         border: '1px solid #ddd',
+        padding: '16px',
         marginTop: '20px',
         borderRadius: '6px',
       }}
     >
-      <h3>Workflow Panel</h3>
+      <h3>Workflow Progress</h3>
 
       <p>
-        <strong>Status:</strong> {data?.workflowStatus || 'Not started'}
+        <strong>Status:</strong> {status.workflowStatus}
       </p>
 
       <p>
-        <strong>Current Step:</strong> {data?.currentStep || 0}
+        <strong>Current Step:</strong> {status.currentStep}
       </p>
 
-      <button onClick={() => handleAction('approve')}>Approve</button>
+      <div style={{ marginTop: '10px' }}>
+        <button onClick={() => handleAction('approve')}>Approve</button>
 
-      <button onClick={() => handleAction('reject')} style={{ marginLeft: '10px' }}>
-        Reject
-      </button>
+        <button style={{ marginLeft: '10px' }} onClick={() => handleAction('reject')}>
+          Reject
+        </button>
+      </div>
+
+      <h4 style={{ marginTop: '20px' }}>Audit Logs</h4>
+
+      <ul>
+        {status.logs?.map((log: any) => (
+          <li key={log.id}>
+            {log.action} — Step {log.stepId}
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
