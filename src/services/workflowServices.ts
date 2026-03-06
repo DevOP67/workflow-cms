@@ -1,50 +1,8 @@
-export const startWorkflow = async (payload: any, collection: string, document: any) => {
+import payload from 'payload'
+
+export const startWorkflow = async (collection: string, document: any) => {
   const workflow = await payload.find({
-    collection: 'workflows',
-    where: {
-      targetCollection: {
-        equals: collection,
-      },
-    },
-  })
-
-  if (!workflow.docs.length) {
-    console.log('No workflow found')
-    return
-  }
-
-  const wf: any = workflow.docs[0]
-
-  const steps = [...wf.steps].sort((a: any, b: any) => a.order - b.order)
-
-  const firstStep = steps[0]
-
-  await payload.update({
-    collection: collection,
-    id: document.id,
-    data: {
-      workflowStatus: 'started',
-      currentStep: firstStep.order,
-    },
-  })
-
-  await payload.create({
-    collection: 'workflowLogs',
-    data: {
-      workflowId: String(wf.id),
-      collectionSlug: String(collection),
-      documentId: String(document.id),
-      stepId: Number(firstStep.order),
-      action: 'workflow_started',
-    },
-  })
-
-  console.log(`Workflow started for ${collection}`)
-}
-
-export const moveToNextStep = async (payload: any, collection: string, document: any) => {
-  const workflow = await payload.find({
-    collection: 'workflows',
+    collection: 'workflows' as any,
     where: {
       targetCollection: {
         equals: collection,
@@ -56,13 +14,52 @@ export const moveToNextStep = async (payload: any, collection: string, document:
 
   const wf: any = workflow.docs[0]
 
-  const steps = [...wf.steps].sort((a: any, b: any) => a.order - b.order)
+  const steps = (wf.steps || []).sort((a: any, b: any) => a.order - b.order)
+
+  const firstStep = steps[0]
+
+  await payload.update({
+    collection: collection as any,
+    id: document.id,
+    data: {
+      workflowStatus: 'started',
+      currentStep: firstStep?.order || 1,
+    },
+  })
+
+  await payload.create({
+    collection: 'workflowLogs' as any,
+    data: {
+      workflowId: wf.id,
+      collection: collection,
+      documentId: document.id,
+      stepId: firstStep?.order,
+      action: 'workflow_started',
+    },
+  })
+}
+
+export const moveToNextStep = async (collection: string, document: any) => {
+  const workflow = await payload.find({
+    collection: 'workflows' as any,
+    where: {
+      targetCollection: {
+        equals: collection,
+      },
+    },
+  })
+
+  if (!workflow.docs.length) return
+
+  const wf: any = workflow.docs[0]
+
+  const steps = (wf.steps || []).sort((a: any, b: any) => a.order - b.order)
 
   const nextStep = steps.find((step: any) => step.order === document.currentStep + 1)
 
   if (!nextStep) {
     await payload.update({
-      collection: collection,
+      collection: collection as any,
       id: document.id,
       data: {
         workflowStatus: 'completed',
@@ -70,11 +67,11 @@ export const moveToNextStep = async (payload: any, collection: string, document:
     })
 
     await payload.create({
-      collection: 'workflowLogs',
+      collection: 'workflowLogs' as any,
       data: {
-        workflowId: String(wf.id),
-        collectionSlug: String(collection),
-        documentId: String(document.id),
+        workflowId: wf.id,
+        collection: collection,
+        documentId: document.id,
         action: 'workflow_completed',
       },
     })
@@ -83,7 +80,7 @@ export const moveToNextStep = async (payload: any, collection: string, document:
   }
 
   await payload.update({
-    collection: collection,
+    collection: collection as any,
     id: document.id,
     data: {
       currentStep: nextStep.order,
@@ -91,32 +88,31 @@ export const moveToNextStep = async (payload: any, collection: string, document:
   })
 
   await payload.create({
-    collection: 'workflowLogs',
+    collection: 'workflowLogs' as any,
     data: {
-      workflowId: String(wf.id),
-      collectionSlug: String(collection),
-      documentId: String(document.id),
-      stepId: Number(nextStep.order),
+      workflowId: wf.id,
+      collection: collection,
+      documentId: document.id,
+      stepId: nextStep.order,
       action: 'step_started',
     },
   })
 }
 
 export const handleWorkflowAction = async (
-  payload: any,
   collection: string,
   documentId: string,
   action: string,
-  userId: string,
+  userId?: string,
   comment?: string,
 ) => {
   const doc: any = await payload.findByID({
-    collection: collection,
+    collection: collection as any,
     id: documentId,
   })
 
   const workflow = await payload.find({
-    collection: 'workflows',
+    collection: 'workflows' as any,
     where: {
       targetCollection: {
         equals: collection,
@@ -129,29 +125,41 @@ export const handleWorkflowAction = async (
   const wf: any = workflow.docs[0]
 
   await payload.create({
-    collection: 'workflowLogs',
+    collection: 'workflowLogs' as any,
     data: {
-      workflowId: String(wf.id),
-      collectionSlug: String(collection),
-      documentId: String(documentId),
-      stepId: Number(doc.currentStep),
-      action: action,
+      workflowId: wf.id,
+      collection: collection,
+      documentId: documentId,
+      stepId: doc.currentStep,
       user: userId,
-      comment: comment || '',
+      action: action,
+      comment: comment,
     },
   })
 
   if (action === 'approve') {
-    await moveToNextStep(payload, collection, doc)
+    await moveToNextStep(collection, doc)
   }
 
   if (action === 'reject') {
     await payload.update({
-      collection: collection,
+      collection: collection as any,
       id: documentId,
       data: {
         workflowStatus: 'rejected',
       },
     })
+  }
+}
+
+export const getWorkflowStatus = async (collection: string, documentId: string) => {
+  const doc: any = await payload.findByID({
+    collection: collection as any,
+    id: documentId,
+  })
+
+  return {
+    workflowStatus: doc.workflowStatus,
+    currentStep: doc.currentStep,
   }
 }

@@ -52,6 +52,16 @@ const Blog: CollectionConfig = {
         readOnly: true,
       },
     },
+
+    {
+      name: 'workflowPanel',
+      type: 'ui',
+      admin: {
+        components: {
+          Field: '@/components/WorkflowPanel',
+        },
+      },
+    },
   ],
 }
 

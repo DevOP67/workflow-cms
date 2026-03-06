@@ -11,6 +11,7 @@ const Workflows: CollectionConfig = {
     {
       name: 'name',
       type: 'text',
+
       required: true,
     },
 

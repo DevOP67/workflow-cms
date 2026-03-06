@@ -7,7 +7,11 @@ import Contract from './collections/Contract'
 import Workflows from './collections/Workflows'
 import WorkflowLogs from './collections/WorkflowLogs'
 
-import { workflowActionEndpoint } from './api/workflows'
+import {
+  workflowTriggerEndpoint,
+  workflowActionEndpoint,
+  workflowStatusEndpoint,
+} from './api/workflows'
 
 export default buildConfig({
   serverURL: 'http://localhost:3000',
@@ -18,7 +22,7 @@ export default buildConfig({
 
   collections: [Users, Blog, Contract, Workflows, WorkflowLogs],
 
-  endpoints: [workflowActionEndpoint],
+  endpoints: [workflowTriggerEndpoint, workflowActionEndpoint, workflowStatusEndpoint],
 
   db: mongooseAdapter({
     url: process.env.DATABASE_URI || 'mongodb://127.0.0.1:27017/workflow-cms',
