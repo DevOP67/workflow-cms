@@ -70,6 +70,7 @@ export interface Config {
     users: User;
     blog: Blog;
     contract: Contract;
+    media: Media;
     workflows: Workflow;
     workflowLogs: WorkflowLog;
     'payload-kv': PayloadKv;
@@ -82,6 +83,7 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     blog: BlogSelect<false> | BlogSelect<true>;
     contract: ContractSelect<false> | ContractSelect<true>;
+    media: MediaSelect<false> | MediaSelect<true>;
     workflows: WorkflowsSelect<false> | WorkflowsSelect<true>;
     workflowLogs: WorkflowLogsSelect<false> | WorkflowLogsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -179,6 +181,25 @@ export interface Contract {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: string;
+  alt: string;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "workflows".
  */
 export interface Workflow {
@@ -249,6 +270,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'contract';
         value: string | Contract;
+      } | null)
+    | ({
+        relationTo: 'media';
+        value: string | Media;
       } | null)
     | ({
         relationTo: 'workflows';
@@ -348,6 +373,24 @@ export interface ContractSelect<T extends boolean = true> {
   currentStep?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media_select".
+ */
+export interface MediaSelect<T extends boolean = true> {
+  alt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

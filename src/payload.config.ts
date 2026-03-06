@@ -4,6 +4,7 @@ import { mongooseAdapter } from '@payloadcms/db-mongodb'
 import Users from './collections/Users'
 import Blog from './collections/Blog'
 import Contract from './collections/Contract'
+import Media from './collections/Media'
 import Workflows from './collections/Workflows'
 import WorkflowLogs from './collections/WorkflowLogs'
 
@@ -20,7 +21,7 @@ export default buildConfig({
     user: Users.slug,
   },
 
-  collections: [Users, Blog, Contract, Workflows, WorkflowLogs],
+  collections: [Users, Blog, Contract, Media, Workflows, WorkflowLogs],
 
   endpoints: [workflowTriggerEndpoint, workflowActionEndpoint, workflowStatusEndpoint],
 

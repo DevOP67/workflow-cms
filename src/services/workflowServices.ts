@@ -34,7 +34,7 @@ export const startWorkflow = async (collection: string, document: any) => {
     collection: 'workflowLogs',
     data: {
       workflowId: wf.id,
-      collection: collection,
+      collectionSlug: collection,
       documentId: document.id,
       stepId: firstValidStep.order,
       action: 'workflow_started',
@@ -75,7 +75,7 @@ export const moveToNextStep = async (collection: string, document: any) => {
       collection: 'workflowLogs',
       data: {
         workflowId: wf.id,
-        collection: collection,
+        collectionSlug: collection,
         documentId: document.id,
         action: 'workflow_completed',
       } as any,
@@ -96,7 +96,7 @@ export const moveToNextStep = async (collection: string, document: any) => {
     collection: 'workflowLogs',
     data: {
       workflowId: wf.id,
-      collection: collection,
+      collectionSlug: collection,
       documentId: document.id,
       stepId: nextStep.order,
       action: 'step_started',
@@ -140,7 +140,7 @@ export const handleWorkflowAction = async (
     collection: 'workflowLogs',
     data: {
       workflowId: wf.id,
-      collection: collection,
+      collectionSlug: collection,
       documentId: documentId,
       stepId: doc.currentStep,
       user: user?.id,
