@@ -24,7 +24,7 @@ export default buildConfig({
   db: mongooseAdapter({
     url:
       process.env.DATABASE_URL ||
-      'mongodb://hellocoder78_db_user:nADkb8IUBfBk9Zuj@database-workflow.eo9h4ug.mongodb.net/workflow-cms?retryWrites=true&w=majority',
+      'mongodb+srv://hellocoder78_db_user:nADkb8IUBfBk9Zuj@database-workflow.eo9h4ug.mongodb.net/workflow-cms?retryWrites=true&w=majority',
   }),
 
   secret: process.env.PAYLOAD_SECRET || 'supersecret',
