@@ -205,16 +205,32 @@ export interface Media {
 export interface Workflow {
   id: string;
   name: string;
+  /**
+   * The slug of the collection this workflow applies to (e.g. blog, contract)
+   */
   targetCollection: string;
-  steps?:
-    | {
-        stepName: string;
-        stepType?: ('approval' | 'review' | 'signoff' | 'comment') | null;
-        assignedRole?: ('reviewer' | 'manager' | 'legal') | null;
-        order: number;
-        id?: string | null;
-      }[]
-    | null;
+  steps: {
+    stepName: string;
+    stepType: 'approval' | 'review' | 'signoff' | 'comment';
+    /**
+     * Role required for this step (leave blank if assigning a specific user)
+     */
+    assignedRole?: ('admin' | 'reviewer' | 'manager' | 'legal') | null;
+    /**
+     * Specific user assigned to this step (overrides role)
+     */
+    assignedUser?: (string | null) | User;
+    /**
+     * Optional condition e.g. "amount > 10000". Leave blank for unconditional.
+     */
+    condition?: string | null;
+    order: number;
+    /**
+     * SLA deadline in days. When exceeded, step is auto-escalated.
+     */
+    slaDays?: number | null;
+    id?: string | null;
+  }[];
   updatedAt: string;
   createdAt: string;
 }
@@ -405,7 +421,10 @@ export interface WorkflowsSelect<T extends boolean = true> {
         stepName?: T;
         stepType?: T;
         assignedRole?: T;
+        assignedUser?: T;
+        condition?: T;
         order?: T;
+        slaDays?: T;
         id?: T;
       };
   updatedAt?: T;

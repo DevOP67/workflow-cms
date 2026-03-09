@@ -1,67 +1,323 @@
-# Payload Blank Template
+# Dynamic Workflow Management System (Payload CMS)
 
-This template comes configured with the bare minimum to get started on anything you need.
+## Overview
 
-## Quick start
+This project implements a **Dynamic Workflow Management System** built on **Payload CMS v3**.
+It allows administrators to define **multi-step approval workflows** that can be dynamically attached to any collection (e.g., Blog, Contract, Product, Document).
 
-This template can be deployed directly from our Cloud hosting and it will setup MongoDB and cloud S3 object storage for media.
+The system enables users to create documents that automatically pass through configurable workflow stages such as **review, approval, and sign-off**, with full **audit logging and workflow tracking**.
 
-## Quick Start - local setup
+This project was developed as part of the **Backend Developer Hiring Task for WeframeTech**.
 
-To spin up this template locally, follow these steps:
+---
 
-### Clone
+# Features
 
-After you click the `Deploy` button above, you'll want to have standalone copy of this repo on your machine. If you've already cloned this repo, skip to [Development](#development).
+### Dynamic Workflow Engine
 
-### Development
+- Create workflows with **multiple steps**
+- Each step can be assigned to a **specific role**
+- Steps support **conditional execution**
+- Workflow automatically starts when a document is created
 
-1. First [clone the repo](#clone) if you have not done so already
-2. `cd my-project && cp .env.example .env` to copy the example environment variables. You'll need to add the `MONGODB_URL` from your Cloud project to your `.env` if you want to use S3 storage and the MongoDB database that was created for you.
+### Workflow Step Actions
 
-3. `pnpm install && pnpm dev` to install dependencies and start the dev server
-4. open `http://localhost:3000` to open the app in your browser
+Users can perform actions such as:
 
-That's it! Changes made in `./src` will be reflected in your app. Follow the on-screen instructions to login and create your first admin user. Then check out [Production](#production) once you're ready to build and serve your app, and [Deployment](#deployment) when you're ready to go live.
+- Approve
+- Reject
+- Comment
 
-#### Docker (Optional)
+These actions trigger workflow progression.
 
-If you prefer to use Docker for local development instead of a local MongoDB instance, the provided docker-compose.yml file can be used.
+---
 
-To do so, follow these steps:
+### Audit Trail
 
-- Modify the `MONGODB_URL` in your `.env` file to `mongodb://127.0.0.1/<dbname>`
-- Modify the `docker-compose.yml` file's `MONGODB_URL` to match the above `<dbname>`
-- Run `docker-compose up` to start the database, optionally pass `-d` to run in the background.
+All workflow actions are recorded in the **WorkflowLogs collection** including:
 
-## How it works
+- workflow ID
+- document ID
+- step ID
+- user
+- action
+- timestamp
+- comment
 
-The Payload config is tailored specifically to the needs of most websites. It is pre-configured in the following ways:
+Logs are **immutable** and cannot be edited.
 
-### Collections
+---
 
-See the [Collections](https://payloadcms.com/docs/configuration/collections) docs for details on how to extend this functionality.
+### Admin Panel Integration
 
-- #### Users (Authentication)
+Inside the Payload Admin Panel:
 
-  Users are auth-enabled collections that have access to the admin panel.
+- Users can view workflow status
+- See current step
+- Execute workflow actions
+- View workflow logs
 
-  For additional help, see the official [Auth Example](https://github.com/payloadcms/payload/tree/main/examples/auth) or the [Authentication](https://payloadcms.com/docs/authentication/overview#authentication-overview) docs.
+---
 
-- #### Media
+### Custom APIs
 
-  This is the uploads enabled collection. It features pre-configured sizes, focal point and manual resizing to help you manage your pictures.
+Two custom APIs are implemented.
 
-### Docker
+#### Trigger Workflow
 
-Alternatively, you can use [Docker](https://www.docker.com) to spin up this template locally. To do so, follow these steps:
+```
+POST /api/workflows/trigger
+```
 
-1. Follow [steps 1 and 2 from above](#development), the docker-compose file will automatically use the `.env` file in your project root
-1. Next run `docker-compose up`
-1. Follow [steps 4 and 5 from above](#development) to login and create your first admin user
+Example request:
 
-That's it! The Docker instance will help you get up and running quickly while also standardizing the development environment across your teams.
+```json
+{
+  "collection": "blog",
+  "documentId": "DOCUMENT_ID"
+}
+```
 
-## Questions
+---
 
-If you have any issues or questions, reach out to us on [Discord](https://discord.com/invite/payload) or start a [GitHub discussion](https://github.com/payloadcms/payload/discussions).
+#### Get Workflow Status
+
+```
+GET /api/workflows/status/:collection/:docId
+```
+
+Example:
+
+```
+GET /api/workflows/status/blog/123
+```
+
+Example response:
+
+```json
+{
+  "workflowStatus": "started",
+  "currentStep": 2,
+  "logs": []
+}
+```
+
+---
+
+# Tech Stack
+
+- Node.js
+- Payload CMS v3
+- MongoDB
+- TypeScript
+- Express (via Payload endpoints)
+
+---
+
+# Project Structure
+
+```
+src
+│
+├ collections
+│   ├ Users.ts
+│   ├ Blog.ts
+│   ├ Contract.ts
+│   ├ Workflows.ts
+│   └ WorkflowLogs.ts
+│
+├ services
+│   └ workflowServices.ts
+│
+├ hooks
+│   └ triggerWorkflow.ts
+│
+├ api
+│   └ workflows.ts
+│
+├ components
+│   └ WorkflowPanel.tsx
+│
+├ utils
+│   └ conditionEvaluator.ts
+│
+└ payload.config.ts
+```
+
+---
+
+# Workflow Architecture
+
+Workflow execution follows this flow:
+
+```
+Document Created
+        ↓
+Trigger Hook (afterChange)
+        ↓
+startWorkflow()
+        ↓
+Assign first step
+        ↓
+User Action (approve / reject)
+        ↓
+handleWorkflowAction()
+        ↓
+moveToNextStep()
+        ↓
+WorkflowLogs updated
+```
+
+---
+
+# Setup Instructions
+
+## 1. Clone the Repository
+
+```
+git clone <PRIVATE_REPO_URL>
+cd workflow-cms
+```
+
+---
+
+## 2. Install Dependencies
+
+```
+npm install
+```
+
+---
+
+## 3. Start MongoDB
+
+Make sure MongoDB is running locally.
+
+Example connection used in this project:
+
+```
+mongodb://127.0.0.1:27017/workflow-cms
+```
+
+You can verify the database using **MongoDB Compass**.
+
+---
+
+## 4. Configure Environment Variables
+
+Create a `.env` file if it does not exist:
+
+```
+DATABASE_URI=mongodb://127.0.0.1:27017/workflow-cms
+PAYLOAD_SECRET=supersecret
+```
+
+---
+
+## 5. Start the Development Server
+
+```
+npm run dev
+```
+
+---
+
+## 6. Access Admin Panel
+
+Open:
+
+```
+http://localhost:3000/admin
+```
+
+Create your first admin user.
+
+---
+
+# Example Workflow
+
+Example workflow for **Blog collection**:
+
+Step 1
+Review – assigned to Reviewer
+
+Step 2
+Approval – assigned to Manager
+
+Step 3
+Sign Off – assigned to Legal
+
+---
+
+# Example Flow
+
+1. User creates a blog post
+2. Workflow automatically starts
+3. Reviewer approves
+4. Manager approves
+5. Legal signs off
+6. Workflow marked as completed
+
+---
+
+# Demo Credentials
+
+Example roles that can be created:
+
+Admin
+Reviewer
+Manager
+Legal
+
+---
+
+# Deployment
+
+This project can be deployed using:
+
+- Vercel
+- Railway
+- Render
+- Any Node.js hosting provider
+
+Steps:
+
+1. Set environment variables
+2. Configure MongoDB connection
+3. Run `npm run build`
+4. Start server
+
+---
+
+# Loom Video Walkthrough
+
+The Loom video demonstrates:
+
+- System architecture
+- Workflow configuration
+- Admin UI workflow execution
+- API usage
+- Full end-to-end workflow example
+
+---
+
+# Evaluation Criteria Addressed
+
+This implementation focuses on:
+
+- modular architecture
+- reusable workflow engine
+- dynamic collection support
+- role-based workflow steps
+- immutable audit logs
+- Payload CMS extensibility
+
+---
+
+# Author
+
+Subho Pattanayak
+Backend Developer | Full-Stack Engineer
+
+GitHub: https://github.com/DevOP67
+LinkedIn: https://linkedin.com/in/subha-pattanayak-8a8165254

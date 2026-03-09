@@ -8,7 +8,10 @@ const WorkflowLogs: CollectionConfig = {
   },
 
   access: {
+    read: () => true,
+    create: () => true,
     update: () => false,
+    delete: () => false,
   },
 
   fields: [

@@ -1,15 +1,10 @@
-import type { CollectionConfig } from 'payload'
-import { triggerWorkflow } from '../hooks/triggerWorkflow'
+import { CollectionConfig } from 'payload'
 
 const Contract: CollectionConfig = {
   slug: 'contract',
 
   admin: {
     useAsTitle: 'title',
-  },
-
-  hooks: {
-    afterChange: [triggerWorkflow],
   },
 
   fields: [
@@ -26,20 +21,6 @@ const Contract: CollectionConfig = {
     {
       name: 'description',
       type: 'textarea',
-    },
-    {
-      name: 'workflowStatus',
-      type: 'text',
-      admin: {
-        readOnly: true,
-      },
-    },
-    {
-      name: 'currentStep',
-      type: 'number',
-      admin: {
-        readOnly: true,
-      },
     },
   ],
 }
