@@ -1,15 +1,16 @@
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
+import { NextRequest, NextResponse } from 'next/server'
 
-export const GET = async (
-  request: Request,
-  { params }: { params: { collection: string; docId: string } },
-) => {
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ collection: string; docId: string }> },
+) {
   const payload = await getPayload({
     config: configPromise,
   })
 
-  const { collection, docId } = params
+  const { collection, docId } = await context.params
 
   try {
     const doc: any = await payload.findByID({
@@ -27,14 +28,12 @@ export const GET = async (
       sort: '-createdAt',
     })
 
-    return Response.json({
+    return NextResponse.json({
       workflowStatus: doc.workflowStatus,
       currentStep: doc.currentStep,
       logs: logs.docs,
     })
   } catch (error: any) {
-    return Response.json({
-      error: error.message,
-    })
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }

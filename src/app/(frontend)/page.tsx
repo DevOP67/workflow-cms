@@ -29,7 +29,7 @@ export default async function HomePage() {
           <p className="subtitle">
             {user
               ? `Welcome back, ${user.email}`
-              : 'AI-powered dynamic workflow engine with multi-step approvals and real-time status tracking'}
+              : 'A dynamic workflow engine with multi-step approvals and real-time status tracking'}
           </p>
         </div>
 
